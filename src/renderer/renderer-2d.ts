@@ -18,10 +18,10 @@ export class Renderer2D {
     const cs = this.cellSize;
     const ctx = this.ctx;
 
-    ctx.fillStyle = '#0f0f23';
+    ctx.fillStyle = '#f0f0f6';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    ctx.fillStyle = '#e94560';
+    ctx.fillStyle = '#5b6abf';
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (automaton.current[y * width + x]) {

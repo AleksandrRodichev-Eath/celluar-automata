@@ -26,10 +26,10 @@ export class Renderer1D {
       this.canvas.height = neededHeight;
     }
 
-    ctx.fillStyle = '#0f0f23';
+    ctx.fillStyle = '#f0f0f6';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    ctx.fillStyle = '#e94560';
+    ctx.fillStyle = '#5b6abf';
     for (let row = 0; row < history.length; row++) {
       const line = history[row];
       for (let x = 0; x < w; x++) {
