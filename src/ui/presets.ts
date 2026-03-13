@@ -12,6 +12,7 @@ export const presets: Preset[] = [
       initMode: 'random',
       density: 0.3,
       pattern: null,
+      customPattern: null,
     },
   },
   {
@@ -25,6 +26,7 @@ export const presets: Preset[] = [
       initMode: 'random',
       density: 0.3,
       pattern: null,
+      customPattern: null,
     },
   },
   {
@@ -38,6 +40,7 @@ export const presets: Preset[] = [
       initMode: 'random',
       density: 0.1,
       pattern: null,
+      customPattern: null,
     },
   },
   {
@@ -51,6 +54,7 @@ export const presets: Preset[] = [
       initMode: 'random',
       density: 0.5,
       pattern: null,
+      customPattern: null,
     },
   },
   {
@@ -64,6 +68,7 @@ export const presets: Preset[] = [
       initMode: 'random',
       density: 0.5,
       pattern: null,
+      customPattern: null,
     },
   },
   {
@@ -77,6 +82,7 @@ export const presets: Preset[] = [
       initMode: 'random',
       density: 0.02,
       pattern: null,
+      customPattern: null,
     },
   },
   {

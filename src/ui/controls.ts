@@ -1,7 +1,9 @@
-import { Config, Config1D, Config2D } from '../types';
+import { Config, Config1D, Config2D, InitMode2D } from '../types';
 import { Simulation } from '../simulation';
 import { presets } from './presets';
 import { getPatternList } from '../engine/patterns';
+
+const customGridState: boolean[] = new Array(25).fill(false);
 
 export function initControls(simulation: Simulation) {
   const $ = (id: string) => document.getElementById(id)!;
@@ -23,6 +25,9 @@ export function initControls(simulation: Simulation) {
   const densityRow = $('density-row');
   const patternSelect = $('pattern-select') as HTMLSelectElement;
   const patternRow = $('pattern-row');
+  const customPatternRow = $('custom-pattern-row');
+  const customGrid = $('custom-grid');
+  const customClearBtn = $('custom-clear-btn');
   const playBtn = $('play-btn');
   const stepBtn = $('step-btn');
   const resetBtn = $('reset-btn');
@@ -71,6 +76,36 @@ export function initControls(simulation: Simulation) {
   createBSCheckboxes(birthContainer, 'b');
   createBSCheckboxes(survivalContainer, 's');
 
+  // Custom 5x5 grid editor
+  const gridButtons: HTMLButtonElement[] = [];
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const idx = r * 5 + c;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('aria-pressed', 'false');
+      btn.addEventListener('click', () => {
+        customGridState[idx] = !customGridState[idx];
+        btn.classList.toggle('cell-alive', customGridState[idx]);
+        btn.setAttribute('aria-pressed', String(customGridState[idx]));
+      });
+      customGrid.appendChild(btn);
+      gridButtons.push(btn);
+    }
+  }
+
+  function syncGridButtons() {
+    for (let i = 0; i < 25; i++) {
+      gridButtons[i].classList.toggle('cell-alive', customGridState[i]);
+      gridButtons[i].setAttribute('aria-pressed', String(customGridState[i]));
+    }
+  }
+
+  customClearBtn.addEventListener('click', () => {
+    customGridState.fill(false);
+    syncGridButtons();
+  });
+
   // Rule display for 1D
   function renderRulePreview(rule: number) {
     let html = '<div class="rule-grid">';
@@ -115,15 +150,34 @@ export function initControls(simulation: Simulation) {
       survivalContainer.querySelectorAll('input:checked').forEach(cb => {
         survival.add(parseInt((cb as HTMLInputElement).dataset.value!));
       });
+      const initMode = init2dSelect.value as InitMode2D;
+      let customPattern: [number, number][] | null = null;
+      let pattern: string | null = null;
+
+      if (initMode === 'custom') {
+        const cells: [number, number][] = [];
+        for (let r = 0; r < 5; r++) {
+          for (let c = 0; c < 5; c++) {
+            if (customGridState[r * 5 + c]) {
+              cells.push([r - 2, c - 2]);
+            }
+          }
+        }
+        customPattern = cells.length > 0 ? cells : null;
+      } else {
+        pattern = patternSelect.value || null;
+      }
+
       return {
         type: '2d',
         birth,
         survival,
         width: parseInt(width2dInput.value) || 100,
         height: parseInt(height2dInput.value) || 100,
-        initMode: init2dSelect.value as 'center' | 'random',
+        initMode,
         density: parseFloat(densityInput.value),
-        pattern: patternSelect.value || null,
+        pattern,
+        customPattern,
       } satisfies Config2D;
     }
   }
@@ -164,6 +218,7 @@ export function initControls(simulation: Simulation) {
   function updateInitModeVisibility(mode: string) {
     densityRow.style.display = mode === 'random' ? 'flex' : 'none';
     patternRow.style.display = mode === 'center' ? 'flex' : 'none';
+    customPatternRow.style.display = mode === 'custom' ? 'flex' : 'none';
   }
 
   function applyAndReset() {

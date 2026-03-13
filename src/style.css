@@ -260,6 +260,37 @@ input[type="range"]::-moz-range-thumb {
   height: 10px;
 }
 
+/* Custom pattern grid */
+.custom-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  width: fit-content;
+}
+
+.custom-grid button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  transition: background-color 0.15s;
+  padding: 0;
+}
+
+.custom-grid button.cell-alive {
+  background: var(--accent);
+}
+
+.custom-grid button:hover {
+  border-color: var(--accent);
+}
+
+#custom-clear-btn {
+  margin-top: 6px;
+}
+
 /* Canvas area */
 .canvas-area {
   flex: 1;

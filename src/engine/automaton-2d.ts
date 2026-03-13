@@ -25,24 +25,34 @@ export class Automaton2D {
     this.current.fill(0);
     this.generation = 0;
 
-    if (config.pattern) {
-      const pattern = getPattern(config.pattern);
-      if (pattern) {
-        this.placePattern(pattern);
-        return;
+    switch (config.initMode) {
+      case 'random': {
+        const density = config.density;
+        for (let i = 0; i < this.current.length; i++) {
+          this.current[i] = Math.random() < density ? 1 : 0;
+        }
+        break;
       }
-    }
-
-    if (config.initMode === 'random') {
-      const density = config.density;
-      for (let i = 0; i < this.current.length; i++) {
-        this.current[i] = Math.random() < density ? 1 : 0;
+      case 'custom': {
+        if (config.customPattern && config.customPattern.length > 0) {
+          this.placePattern({ name: 'custom', cells: config.customPattern });
+        }
+        break;
       }
-    } else {
-      // single cell in center
-      const cx = Math.floor(this.width / 2);
-      const cy = Math.floor(this.height / 2);
-      this.current[cy * this.width + cx] = 1;
+      case 'center':
+      default: {
+        if (config.pattern) {
+          const pattern = getPattern(config.pattern);
+          if (pattern) {
+            this.placePattern(pattern);
+            break;
+          }
+        }
+        const cx = Math.floor(this.width / 2);
+        const cy = Math.floor(this.height / 2);
+        this.current[cy * this.width + cx] = 1;
+        break;
+      }
     }
   }
 

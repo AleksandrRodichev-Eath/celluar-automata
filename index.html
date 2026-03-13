@@ -69,6 +69,7 @@
           <select id="init-2d">
             <option value="random">Random</option>
             <option value="center">Pattern / Center</option>
+            <option value="custom">Custom</option>
           </select>
         </div>
         <div class="control-group" id="density-row">
@@ -78,6 +79,11 @@
         <div class="control-group" id="pattern-row" style="display: none">
           <label>Pattern</label>
           <select id="pattern-select"></select>
+        </div>
+        <div class="control-group" id="custom-pattern-row" style="display: none">
+          <label>Draw Pattern</label>
+          <div class="custom-grid" id="custom-grid"></div>
+          <button id="custom-clear-btn">Clear</button>
         </div>
       </div>
 

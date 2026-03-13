@@ -14,6 +14,7 @@ const simulation = new Simulation(canvas, {
   initMode: 'random',
   density: 0.3,
   pattern: null,
+  customPattern: null,
 });
 
 initControls(simulation);

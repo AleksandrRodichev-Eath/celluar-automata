@@ -1,4 +1,4 @@
-import { Config1D, InitMode } from '../types';
+import { Config1D, InitMode1D } from '../types';
 
 export class Automaton1D {
   width: number;
@@ -15,7 +15,7 @@ export class Automaton1D {
     this.init(config.initMode);
   }
 
-  private init(mode: InitMode) {
+  private init(mode: InitMode1D) {
     this.current.fill(0);
     if (mode === 'center') {
       this.current[Math.floor(this.width / 2)] = 1;
