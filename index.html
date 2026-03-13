@@ -11,6 +11,18 @@
     <aside class="sidebar">
       <h1>Cellular Automata</h1>
 
+      <div class="control-group" id="import-section">
+        <label>Import Parameters</label>
+        <div class="import-row">
+          <input type="text" id="import-input" placeholder="Paste parameter string..." />
+          <button id="import-load-btn">Load</button>
+        </div>
+        <input type="file" id="import-file" accept=".txt" />
+        <select id="import-select" style="display: none">
+          <option value="">Select from file...</option>
+        </select>
+      </div>
+
       <div class="control-group">
         <label>Preset</label>
         <select id="preset-select">
@@ -82,6 +94,11 @@
         </div>
         <div class="control-group" id="custom-pattern-row" style="display: none">
           <label>Draw Pattern</label>
+          <select id="grid-size-select">
+            <option value="3">3×3</option>
+            <option value="4">4×4</option>
+            <option value="5" selected>5×5</option>
+          </select>
           <div class="custom-grid" id="custom-grid"></div>
           <button id="custom-clear-btn">Clear</button>
         </div>

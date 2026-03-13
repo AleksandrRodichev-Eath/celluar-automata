@@ -2,8 +2,10 @@ import { Config, Config1D, Config2D, InitMode2D } from '../types';
 import { Simulation } from '../simulation';
 import { presets } from './presets';
 import { getPatternList } from '../engine/patterns';
+import { parseLegacyString, LegacyParseResult } from './legacy-parser';
 
-const customGridState: boolean[] = new Array(25).fill(false);
+let gridSize = 5;
+let customGridState: boolean[] = new Array(gridSize * gridSize).fill(false);
 
 export function initControls(simulation: Simulation) {
   const $ = (id: string) => document.getElementById(id)!;
@@ -76,30 +78,45 @@ export function initControls(simulation: Simulation) {
   createBSCheckboxes(birthContainer, 'b');
   createBSCheckboxes(survivalContainer, 's');
 
-  // Custom 5x5 grid editor
-  const gridButtons: HTMLButtonElement[] = [];
-  for (let r = 0; r < 5; r++) {
-    for (let c = 0; c < 5; c++) {
-      const idx = r * 5 + c;
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.setAttribute('aria-pressed', 'false');
-      btn.addEventListener('click', () => {
-        customGridState[idx] = !customGridState[idx];
-        btn.classList.toggle('cell-alive', customGridState[idx]);
-        btn.setAttribute('aria-pressed', String(customGridState[idx]));
-      });
-      customGrid.appendChild(btn);
-      gridButtons.push(btn);
+  // Dynamic grid editor
+  const gridSizeSelect = $('grid-size-select') as HTMLSelectElement;
+  let gridButtons: HTMLButtonElement[] = [];
+
+  function buildGrid(size: number) {
+    gridSize = size;
+    customGridState = new Array(size * size).fill(false);
+    customGrid.innerHTML = '';
+    customGrid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+    gridButtons = [];
+    for (let r = 0; r < size; r++) {
+      for (let c = 0; c < size; c++) {
+        const idx = r * size + c;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('aria-pressed', 'false');
+        btn.addEventListener('click', () => {
+          customGridState[idx] = !customGridState[idx];
+          btn.classList.toggle('cell-alive', customGridState[idx]);
+          btn.setAttribute('aria-pressed', String(customGridState[idx]));
+        });
+        customGrid.appendChild(btn);
+        gridButtons.push(btn);
+      }
     }
   }
 
   function syncGridButtons() {
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < gridButtons.length; i++) {
       gridButtons[i].classList.toggle('cell-alive', customGridState[i]);
       gridButtons[i].setAttribute('aria-pressed', String(customGridState[i]));
     }
   }
+
+  buildGrid(5);
+
+  gridSizeSelect.addEventListener('change', () => {
+    buildGrid(parseInt(gridSizeSelect.value));
+  });
 
   customClearBtn.addEventListener('click', () => {
     customGridState.fill(false);
@@ -156,10 +173,11 @@ export function initControls(simulation: Simulation) {
 
       if (initMode === 'custom') {
         const cells: [number, number][] = [];
-        for (let r = 0; r < 5; r++) {
-          for (let c = 0; c < 5; c++) {
-            if (customGridState[r * 5 + c]) {
-              cells.push([r - 2, c - 2]);
+        const center = Math.floor(gridSize / 2);
+        for (let r = 0; r < gridSize; r++) {
+          for (let c = 0; c < gridSize; c++) {
+            if (customGridState[r * gridSize + c]) {
+              cells.push([r - center, c - center]);
             }
           }
         }
@@ -292,6 +310,87 @@ export function initControls(simulation: Simulation) {
   // Generation counter
   simulation.setOnGenerationChange((gen: number) => {
     genDisplay.textContent = String(gen);
+  });
+
+  // Import elements
+  const importInput = $('import-input') as HTMLInputElement;
+  const importLoadBtn = $('import-load-btn');
+  const importFile = $('import-file') as HTMLInputElement;
+  const importSelect = $('import-select') as HTMLSelectElement;
+
+  let importedEntries: LegacyParseResult[] = [];
+
+  function applyImportResult(result: LegacyParseResult) {
+    // Resize and populate grid editor if pattern present
+    if (result.patternGrid) {
+      gridSizeSelect.value = String(result.gridSize);
+      buildGrid(result.gridSize);
+      for (let i = 0; i < result.patternGrid.length; i++) {
+        customGridState[i] = result.patternGrid[i];
+      }
+      syncGridButtons();
+    }
+
+    setUIFromConfig(result.config);
+    simulation.applyConfig(result.config);
+    presetSelect.value = '';
+    updatePlayButton();
+  }
+
+  importLoadBtn.addEventListener('click', () => {
+    const raw = importInput.value;
+    if (!raw.trim()) return;
+    try {
+      const result = parseLegacyString(raw);
+      importInput.classList.remove('import-error');
+      importInput.removeAttribute('aria-invalid');
+      applyImportResult(result);
+    } catch {
+      importInput.classList.add('import-error');
+      importInput.setAttribute('aria-invalid', 'true');
+    }
+  });
+
+  importInput.addEventListener('input', () => {
+    importInput.classList.remove('import-error');
+    importInput.removeAttribute('aria-invalid');
+  });
+
+  importFile.addEventListener('change', () => {
+    const file = importFile.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = reader.result as string;
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      importedEntries = [];
+      // Clear existing options except placeholder
+      while (importSelect.options.length > 1) {
+        importSelect.remove(1);
+      }
+      for (const line of lines) {
+        try {
+          const result = parseLegacyString(line);
+          importedEntries.push(result);
+          const opt = document.createElement('option');
+          opt.value = String(importedEntries.length - 1);
+          opt.textContent = result.label;
+          importSelect.appendChild(opt);
+        } catch {
+          // Skip malformed lines
+        }
+      }
+      importSelect.style.display = importedEntries.length > 0 ? '' : 'none';
+      importSelect.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  importSelect.addEventListener('change', () => {
+    const idx = parseInt(importSelect.value);
+    if (!isNaN(idx) && importedEntries[idx]) {
+      applyImportResult(importedEntries[idx]);
+    }
   });
 
   // Canvas click for 2D cell toggling

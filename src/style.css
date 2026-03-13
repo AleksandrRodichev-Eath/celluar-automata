@@ -73,7 +73,7 @@ html, body {
   letter-spacing: 0.5px;
 }
 
-select, input[type="number"] {
+select, input[type="number"], input[type="text"] {
   background: var(--bg-tertiary);
   color: var(--text-primary);
   border: 1px solid var(--border);
@@ -84,7 +84,7 @@ select, input[type="number"] {
   transition: border-color 0.2s;
 }
 
-select:focus, input[type="number"]:focus {
+select:focus, input[type="number"]:focus, input[type="text"]:focus {
   border-color: var(--accent);
 }
 
@@ -260,10 +260,34 @@ input[type="range"]::-moz-range-thumb {
   height: 10px;
 }
 
+/* Import section */
+.import-row {
+  display: flex;
+  gap: 6px;
+}
+
+.import-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+
+.import-row button {
+  flex: none;
+  padding: 8px 14px;
+}
+
+input[type="text"].import-error {
+  border-color: #d94040;
+}
+
+input[type="file"] {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
 /* Custom pattern grid */
 .custom-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
   gap: 2px;
   width: fit-content;
 }
