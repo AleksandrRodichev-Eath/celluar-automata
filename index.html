@@ -19,7 +19,7 @@
         </div>
         <input type="file" id="import-file" accept=".txt" />
         <select id="import-select" style="display: none">
-          <option value="">Select from file...</option>
+          <option value="">Select preset...</option>
         </select>
       </div>
 
@@ -70,11 +70,11 @@
         </div>
         <div class="control-group">
           <label>Width</label>
-          <input type="number" id="width-2d" min="10" max="500" value="100" />
+          <input type="number" id="width-2d" min="10" max="500" value="150" />
         </div>
         <div class="control-group">
           <label>Height</label>
-          <input type="number" id="height-2d" min="10" max="500" value="100" />
+          <input type="number" id="height-2d" min="10" max="500" value="150" />
         </div>
         <div class="control-group">
           <label>Initial State</label>
@@ -120,6 +120,24 @@
 
       <div class="gen-counter">
         Generation: <span id="gen-display">0</span>
+      </div>
+
+      <hr />
+
+      <div class="control-group">
+        <label>Cell Color</label>
+        <input type="color" id="cell-color" value="#5b6abf" />
+      </div>
+
+      <div class="control-group">
+        <label class="checkbox-label">
+          <input type="checkbox" id="cell-border" />
+          Cell Border
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="solid-borders" />
+          Solid Borders
+        </label>
       </div>
     </aside>
 

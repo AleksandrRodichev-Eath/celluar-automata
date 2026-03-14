@@ -3,6 +3,7 @@ import { Simulation } from '../simulation';
 import { presets } from './presets';
 import { getPatternList } from '../engine/patterns';
 import { parseLegacyString, LegacyParseResult } from './legacy-parser';
+import libPubRaw from '../../lib-pub.txt?raw';
 
 let gridSize = 5;
 let customGridState: boolean[] = new Array(gridSize * gridSize).fill(false);
@@ -36,6 +37,9 @@ export function initControls(simulation: Simulation) {
   const speedInput = $('speed-input') as HTMLInputElement;
   const speedValue = $('speed-value');
   const genDisplay = $('gen-display');
+  const cellColorInput = $('cell-color') as HTMLInputElement;
+  const cellBorderInput = $('cell-border') as HTMLInputElement;
+  const solidBordersInput = $('solid-borders') as HTMLInputElement;
 
   // Populate presets
   presets.forEach((p, i) => {
@@ -157,6 +161,7 @@ export function initControls(simulation: Simulation) {
         rule: parseInt(ruleInput.value) || 30,
         width: parseInt(width1dInput.value) || 301,
         initMode: init1dSelect.value as 'center' | 'random',
+        solidBorders: solidBordersInput.checked,
       } satisfies Config1D;
     } else {
       const birth = new Set<number>();
@@ -190,12 +195,13 @@ export function initControls(simulation: Simulation) {
         type: '2d',
         birth,
         survival,
-        width: parseInt(width2dInput.value) || 100,
-        height: parseInt(height2dInput.value) || 100,
+        width: parseInt(width2dInput.value) || 150,
+        height: parseInt(height2dInput.value) || 150,
         initMode,
         density: parseFloat(densityInput.value),
         pattern,
         customPattern,
+        solidBorders: solidBordersInput.checked,
       } satisfies Config2D;
     }
   }
@@ -203,6 +209,7 @@ export function initControls(simulation: Simulation) {
   function setUIFromConfig(config: Config) {
     typeSelect.value = config.type;
     showType(config.type);
+    solidBordersInput.checked = config.solidBorders;
 
     if (config.type === '1d') {
       ruleInput.value = String(config.rule);
@@ -251,8 +258,11 @@ export function initControls(simulation: Simulation) {
 
   // Events
   typeSelect.addEventListener('change', () => {
-    showType(typeSelect.value as '1d' | '2d');
+    const type = typeSelect.value as '1d' | '2d';
+    showType(type);
+    cellBorderInput.checked = type === '2d';
     applyAndReset();
+    applyDisplayOptions();
   });
 
   presetSelect.addEventListener('change', () => {
@@ -265,6 +275,7 @@ export function initControls(simulation: Simulation) {
         : { ...config };
       setUIFromConfig(cloned as Config);
       simulation.applyConfig(cloned as Config);
+      importSelect.value = '';
       updatePlayButton();
     }
   });
@@ -356,32 +367,37 @@ export function initControls(simulation: Simulation) {
     importInput.removeAttribute('aria-invalid');
   });
 
+  function loadEntriesFromText(text: string): void {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    importedEntries = [];
+    while (importSelect.options.length > 1) {
+      importSelect.remove(1);
+    }
+    for (const line of lines) {
+      try {
+        const result = parseLegacyString(line);
+        importedEntries.push(result);
+        const opt = document.createElement('option');
+        opt.value = String(importedEntries.length - 1);
+        opt.textContent = result.label;
+        importSelect.appendChild(opt);
+      } catch {
+        // Skip malformed lines
+      }
+    }
+    importSelect.style.display = importedEntries.length > 0 ? '' : 'none';
+    importSelect.value = '';
+  }
+
+  // Auto-load bundled library
+  loadEntriesFromText(libPubRaw);
+
   importFile.addEventListener('change', () => {
     const file = importFile.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const text = reader.result as string;
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      importedEntries = [];
-      // Clear existing options except placeholder
-      while (importSelect.options.length > 1) {
-        importSelect.remove(1);
-      }
-      for (const line of lines) {
-        try {
-          const result = parseLegacyString(line);
-          importedEntries.push(result);
-          const opt = document.createElement('option');
-          opt.value = String(importedEntries.length - 1);
-          opt.textContent = result.label;
-          importSelect.appendChild(opt);
-        } catch {
-          // Skip malformed lines
-        }
-      }
-      importSelect.style.display = importedEntries.length > 0 ? '' : 'none';
-      importSelect.value = '';
+      loadEntriesFromText(reader.result as string);
     };
     reader.readAsText(file);
   });
@@ -391,6 +407,37 @@ export function initControls(simulation: Simulation) {
     if (!isNaN(idx) && importedEntries[idx]) {
       applyImportResult(importedEntries[idx]);
     }
+  });
+
+  // Display options
+  function getDisplayOptions() {
+    return {
+      cellColor: cellColorInput.value,
+      cellBorder: cellBorderInput.checked,
+    };
+  }
+
+  function applyDisplayOptions() {
+    simulation.setDisplayOptions(getDisplayOptions());
+  }
+
+  function syncCSSColors(color: string) {
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--accent-hover', color);
+    document.documentElement.style.setProperty('--cell-alive', color);
+  }
+
+  cellColorInput.addEventListener('input', () => {
+    syncCSSColors(cellColorInput.value);
+    applyDisplayOptions();
+  });
+
+  cellBorderInput.addEventListener('change', () => {
+    applyDisplayOptions();
+  });
+
+  solidBordersInput.addEventListener('change', () => {
+    applyAndReset();
   });
 
   // Canvas click for 2D cell toggling
@@ -404,4 +451,5 @@ export function initControls(simulation: Simulation) {
   // Initialize with first preset (Game of Life)
   presetSelect.value = '0';
   presetSelect.dispatchEvent(new Event('change'));
+  applyDisplayOptions();
 }
