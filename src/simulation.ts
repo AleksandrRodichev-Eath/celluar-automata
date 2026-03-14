@@ -1,4 +1,4 @@
-import { Config } from './types';
+import { Config, DisplayOptions } from './types';
 import { Automaton1D } from './engine/automaton-1d';
 import { Automaton2D } from './engine/automaton-2d';
 import { Renderer1D } from './renderer/renderer-1d';
@@ -14,6 +14,7 @@ export class Simulation {
   private speed = 10; // generations per second
   private lastStep = 0;
   private config: Config;
+  private displayOptions: DisplayOptions = { cellColor: '#5b6abf', cellBorder: true };
   private onGenerationChange: ((gen: number) => void) | null = null;
 
   constructor(
@@ -38,14 +39,14 @@ export class Simulation {
       this.renderer1d = new Renderer1D(this.canvas);
       this.renderer2d = null;
       this.renderer1d.resize(this.automaton1d);
-      this.renderer1d.render(this.automaton1d);
+      this.renderer1d.render(this.automaton1d, this.displayOptions);
     } else {
       this.automaton2d = new Automaton2D(config);
       this.automaton1d = null;
       this.renderer2d = new Renderer2D(this.canvas);
       this.renderer1d = null;
       this.renderer2d.resize(this.automaton2d);
-      this.renderer2d.render(this.automaton2d);
+      this.renderer2d.render(this.automaton2d, this.displayOptions);
     }
     this.fireGeneration();
   }
@@ -89,11 +90,16 @@ export class Simulation {
     return 0;
   }
 
+  setDisplayOptions(options: DisplayOptions) {
+    this.displayOptions = options;
+    this.render();
+  }
+
   handleCanvasClick(clientX: number, clientY: number) {
     if (this.automaton2d && this.renderer2d) {
       const [x, y] = this.renderer2d.getCellCoords(clientX, clientY);
       this.automaton2d.toggleCell(x, y);
-      this.renderer2d.render(this.automaton2d);
+      this.renderer2d.render(this.automaton2d, this.displayOptions);
     }
   }
 
@@ -116,10 +122,10 @@ export class Simulation {
 
   private render() {
     if (this.automaton1d && this.renderer1d) {
-      this.renderer1d.render(this.automaton1d);
+      this.renderer1d.render(this.automaton1d, this.displayOptions);
     }
     if (this.automaton2d && this.renderer2d) {
-      this.renderer2d.render(this.automaton2d);
+      this.renderer2d.render(this.automaton2d, this.displayOptions);
     }
   }
 

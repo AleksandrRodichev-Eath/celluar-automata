@@ -108,12 +108,15 @@ export function parseLegacyString(input: string): LegacyParseResult {
     density,
     pattern: null,
     customPattern,
+    solidBorders: false,
   };
 
   // Build label
+  const name = fields[13];
+  let label = name;
   const bStr = `B${Array.from(birth).sort().join('')}`;
   const sStr = `S${Array.from(survival).sort().join('')}`;
-  let label = `${bStr}/${sStr}`;
+  label += ` ${bStr}/${sStr}`;
   if (hasDensity) label += ` d:${density}`;
   if (hasPattern) label += ` ${gridSize}x${gridSize}`;
   label += ` [${config.width}x${config.height}]`;

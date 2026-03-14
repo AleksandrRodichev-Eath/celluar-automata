@@ -7,6 +7,7 @@ export interface Config1D {
   rule: number;       // 0-255
   width: number;
   initMode: InitMode1D;
+  solidBorders: boolean;
 }
 
 export interface Config2D {
@@ -19,6 +20,7 @@ export interface Config2D {
   density: number;       // 0-1, for random init
   pattern: string | null; // pattern key or null
   customPattern: [number, number][] | null; // [row, col] offsets from center
+  solidBorders: boolean;
 }
 
 export type Config = Config1D | Config2D;
@@ -31,4 +33,9 @@ export interface Preset {
 export interface Pattern2D {
   name: string;
   cells: [number, number][]; // [row, col] offsets from center
+}
+
+export interface DisplayOptions {
+  cellColor: string;
+  cellBorder: boolean;
 }

@@ -1,4 +1,5 @@
 import { Automaton2D } from '../engine/automaton-2d';
+import { DisplayOptions } from '../types';
 
 export class Renderer2D {
   private ctx: CanvasRenderingContext2D;
@@ -13,7 +14,7 @@ export class Renderer2D {
     this.canvas.height = automaton.height * this.cellSize;
   }
 
-  render(automaton: Automaton2D) {
+  render(automaton: Automaton2D, options?: DisplayOptions) {
     const { width, height } = automaton;
     const cs = this.cellSize;
     const ctx = this.ctx;
@@ -21,11 +22,12 @@ export class Renderer2D {
     ctx.fillStyle = '#f0f0f6';
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-    ctx.fillStyle = '#5b6abf';
+    ctx.fillStyle = options?.cellColor ?? '#5b6abf';
+    const gap = (options?.cellBorder ?? true) ? 1 : 0;
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         if (automaton.current[y * width + x]) {
-          ctx.fillRect(x * cs, y * cs, cs - 1, cs - 1);
+          ctx.fillRect(x * cs, y * cs, cs - gap, cs - gap);
         }
       }
     }

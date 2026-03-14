@@ -9,6 +9,7 @@ export class Automaton2D {
   current: Uint8Array;
   private next: Uint8Array;
   private generation = 0;
+  private solidBorders: boolean;
 
   constructor(config: Config2D) {
     this.width = Math.min(config.width, 500);
@@ -18,6 +19,7 @@ export class Automaton2D {
     const size = this.width * this.height;
     this.current = new Uint8Array(size);
     this.next = new Uint8Array(size);
+    this.solidBorders = config.solidBorders;
     this.init(config);
   }
 
@@ -94,9 +96,16 @@ export class Automaton2D {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         if (dx === 0 && dy === 0) continue;
-        const nx = (x + dx + this.width) % this.width;
-        const ny = (y + dy + this.height) % this.height;
-        count += this.current[ny * this.width + nx];
+        if (this.solidBorders) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || nx >= this.width || ny < 0 || ny >= this.height) continue;
+          count += this.current[ny * this.width + nx];
+        } else {
+          const nx = (x + dx + this.width) % this.width;
+          const ny = (y + dy + this.height) % this.height;
+          count += this.current[ny * this.width + nx];
+        }
       }
     }
     return count;
